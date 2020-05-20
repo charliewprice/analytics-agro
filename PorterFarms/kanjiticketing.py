@@ -13,8 +13,8 @@ print (sys.version)
 print("Version info.")
 print (sys.version_info)
 
-def getKanjiDbConnection():
-  conn_str = "host={0} port={1} dbname={2} user={3} password={4}".format("localhost", 5432, "kanjidb", "postgres", "w0lfpack")
+def getKanjiDbConnection(dbhost, dbport, dbname, dbuser, dbpass):
+  conn_str = "host={0} port={1} dbname={2} user={3} password={4}".format(dbhost, dbport, dbname, dbuser, dbpass)
 
   try:
     conn = pg.connect(conn_str)

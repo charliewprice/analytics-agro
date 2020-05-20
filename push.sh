@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#pause CRON so we can avoid creating any checkpoints
+/etc/init.d/cron stop
 find . -name '*-checkpoint.ipynb' -delete
 find . -name '*.html' -delete
 find . -name '*.pyc' -delete
@@ -11,4 +13,5 @@ git status
 git add .
 git commit -m "update"
 git push https://github.com/charliewprice/AgBotAnalytics master
-
+#restart CRON
+etc/init.d/cron start
