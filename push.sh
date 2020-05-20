@@ -1,5 +1,6 @@
 #!/bin/bash
 
+find . -name '*-checkpoint.ipynb' -delete
 find . -name '*.html' -delete
 git status
 git add .
