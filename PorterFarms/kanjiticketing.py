@@ -36,6 +36,7 @@ def logger(level, message):
 
 _OPEN_STATUS = 10000
 _WORKING_STATUS = 10001
+_UNASSIGNED_USER = 10006
 
 #the block is constructed here from the Slack template, we replace keys as needed later
 openticketmessage = "[\
@@ -94,14 +95,16 @@ def slackticket(nodename, location, description, mentions, impact, urgency, loca
           logger(_LOG_ERROR, "kanjiticketing Error posting message to Slack channel")
           logger(_LOG_ERROR, blockmessage)
           logger(_LOG_ERROR, response)
+          return 0
         else:
           logger(_LOG_INFO, "Ok posting message to Slack channel")
           logger(_LOG_DEBUG, "Message ts = {}".format(response['ts']))
           return response['ts']
 
 def openticket(conn, nodeid, locationid, description, impact, urgency, type, ticketchannel):
-    sqlinsert = "INSERT INTO kanji_ticket (opentimestamp, lastupdatetimestamp, node_id, location_id, description, impact_id, urgency_id, type_id, status_id, ticketchannel) \
-    VALUES ('{}', '{}', '{}', '{}', '{}', {}, {}, {}, {}, '{}') ".format(datetime.now(), datetime.now(), nodeid, locationid, description, impact, urgency, type, _OPEN_STATUS, ticketchannel)
+    sqlinsert = "INSERT INTO kanji_ticket (opentimestamp, lastupdatetimestamp, node_id, location_id, description, \
+                 impact_id, urgency_id, type_id, status_id, ticketchannel, ackuser_id \
+                 VALUES ('{}', '{}', '{}', '{}', '{}', {}, {}, {}, {}, '{}', {}) ".format(datetime.now(), datetime.now(), nodeid, locationid, description, impact, urgency, type, _OPEN_STATUS, ticketchannel, _UNASSIGNED_USER)
     logger(_LOG_DEBUG, sqlinsert)
     cur = conn.cursor()
     cur.execute(sqlinsert)    
