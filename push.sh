@@ -3,7 +3,7 @@
 find . -name '*-checkpoint.ipynb' -delete
 find . -name '*.html' -delete
 find . -name '*.pyc' -delete
-
+rm -rf PorterFarms/.ipynb_checkpoints
 git status
 git add .
 git commit -m "update"
