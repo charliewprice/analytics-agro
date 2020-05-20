@@ -103,7 +103,7 @@ def slackticket(nodename, location, description, mentions, impact, urgency, loca
 
 def openticket(conn, nodeid, locationid, description, impact, urgency, type, ticketchannel):
     sqlinsert = "INSERT INTO kanji_ticket (opentimestamp, lastupdatetimestamp, node_id, location_id, description, \
-                 impact_id, urgency_id, type_id, status_id, ticketchannel, ackuser_id \
+                 impact_id, urgency_id, type_id, status_id, ticketchannel, ackuser_id) \
                  VALUES ('{}', '{}', '{}', '{}', '{}', {}, {}, {}, {}, '{}', {}) ".format(datetime.now(), datetime.now(), nodeid, locationid, description, impact, urgency, type, _OPEN_STATUS, ticketchannel, _UNASSIGNED_USER)
     logger(_LOG_DEBUG, sqlinsert)
     cur = conn.cursor()
