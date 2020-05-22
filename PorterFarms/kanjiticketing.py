@@ -89,7 +89,40 @@ def slackticket(nodename, location, description, mentions, impact, urgency, loca
         if ticketts==0:
           response = sc.api_call("chat.postMessage", link_names=1, channel=_SLACK_CHANNEL, blocks=blockmessage)
         else:        
-          response = sc.api_call("chat.postMessage", link_names=1, channel=_SLACK_CHANNEL, thread_ts=ticketts, blocks=blockmessage)
+          response = sc.api_call("chat.postMessage", link_names=1, channel=_SLACK_CHANNEL, ts=ticketts, blocks=blockmessage)
+                
+        if not 'ok' in response or not response['ok']:
+          logger(_LOG_ERROR, "kanjiticketing Error posting message to Slack channel")
+          logger(_LOG_ERROR, blockmessage)
+          logger(_LOG_ERROR, response)
+          return 0
+        else:
+          logger(_LOG_INFO, "Ok posting message to Slack channel")
+          logger(_LOG_DEBUG, "Message ts = {}".format(response['ts']))
+          return response['ts']
+    
+def slackreissueticket(nodename, location, description, mentions, impact, urgency, locationimageurl, _SLACK_TOKEN, _SLACK_CHANNEL, ticketid, ticketts, status):
+        timestamp = datetime.now()
+        # start key replacement
+        blockmessage = json.loads(openticketmessage)
+        print(blockmessage[0]["accessory"]["image_url"])
+        blockmessage[0]["accessory"]["image_url"] = locationimageurl
+        blockmessage[0]["text"]["text"] = "*{}* at {} \
+                        \n*{} {}* \
+                        \nticket #{} for {}".format(location, timestamp.strftime("%-I:%M %p %A, %B %e, %Y"), nodename, description, ticketid, mentions)
+        if status == _OPEN_STATUS:
+          blockmessage[1]["text"]["text"] = "*To work this issue, click the button...*"
+          blockmessage[1]["accessory"]["text"]["text"] = "I got it!"
+          blockmessage[1]["accessory"]["value"] = "accept"
+        elif status == _WORKING_STATUS:
+          blockmessage[1]["text"]["text"] = "*To close this issue, click the button...*"
+          blockmessage[1]["accessory"]["text"]["text"] = "Issue Resolved!"
+          blockmessage[1]["accessory"]["value"] = "close"
+        blockmessage[1]["accessory"]["action_id"] = "{0}".format(ticketid)
+        # end key replacement
+
+        sc = SlackClient(_SLACK_TOKEN)
+        response = sc.api_call("chat.update", channel=_SLACK_CHANNEL, ts=ticketts, text="REISSUE", blocks=blockmessage)        
                 
         if not 'ok' in response or not response['ok']:
           logger(_LOG_ERROR, "kanjiticketing Error posting message to Slack channel")
@@ -101,10 +134,11 @@ def slackticket(nodename, location, description, mentions, impact, urgency, loca
           logger(_LOG_DEBUG, "Message ts = {}".format(response['ts']))
           return response['ts']
 
-def openticket(conn, nodeid, locationid, description, impact, urgency, type, ticketchannel):
+
+def openticket(conn, nodeid, locationid, description, impact, urgency, type, ticketchannelid):
     sqlinsert = "INSERT INTO kanji_ticket (opentimestamp, lastupdatetimestamp, node_id, location_id, description, \
-                 impact_id, urgency_id, type_id, status_id, ticketchannel, ackuser_id) \
-                 VALUES ('{}', '{}', '{}', '{}', '{}', {}, {}, {}, {}, '{}', {}) ".format(datetime.now(), datetime.now(), nodeid, locationid, description, impact, urgency, type, _OPEN_STATUS, ticketchannel, _UNASSIGNED_USER)
+                 impact_id, urgency_id, type_id, status_id, slackticketchannel_id, ackuser_id) \
+                 VALUES ('{}', '{}', '{}', '{}', '{}', {}, {}, {}, {}, {}, {}) ".format(datetime.now(), datetime.now(), nodeid, locationid, description, impact, urgency, type, _OPEN_STATUS, ticketchannelid, _UNASSIGNED_USER)
     logger(_LOG_DEBUG, sqlinsert)
     cur = conn.cursor()
     cur.execute(sqlinsert)    
