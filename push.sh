@@ -10,7 +10,7 @@ rm -rf PorterFarms/InfMonitoring/.ipynb_checkpoints
 rm -rf PorterFarms/.ipynb_checkpoints
 
 git status
-git add .
+sudo git add .
 git commit -m "update"
 git push https://github.com/charliewprice/AgBotAnalytics master
 #restart CRON

@@ -7,6 +7,7 @@ import json
 import copy
 import pandas as pd
 from slackclient import SlackClient
+import configparser
 
 print("Python version")
 print (sys.version)
@@ -28,7 +29,9 @@ _LOG_DEBUG = 0
 _LOG_INFO  = 1
 _LOG_ERROR = 2
 
-_LOG_LEVEL = _LOG_DEBUG
+config = configparser.ConfigParser()
+config.read("../../../analytics_secrets.ini")
+_LOG_LEVEL = int(config['DEFAULT']['loglevel'])
 
 def logger(level, message):
     if level >= _LOG_LEVEL:
@@ -75,7 +78,7 @@ def slackticket(nodename, location, description, mentions, impact, urgency, loca
         blockmessage = json.loads(openticketmessage)
         print(blockmessage[0]["accessory"]["image_url"])
         blockmessage[0]["accessory"]["image_url"] = locationimageurl
-        blockmessage[0]["text"]["text"] = "*{}* at {} \
+        blockmessage[0]["text"]["text"] = "*ALERT {}* at {} \
                         \n*{} {}* \
                         \nticket #{} for {}".format(location, timestamp.strftime("%-I:%M %p %A, %B %e, %Y"), nodename, description, ticketid, mentions)
 
@@ -107,7 +110,7 @@ def slackreissueticket(nodename, location, description, mentions, impact, urgenc
         blockmessage = json.loads(openticketmessage)
         print(blockmessage[0]["accessory"]["image_url"])
         blockmessage[0]["accessory"]["image_url"] = locationimageurl
-        blockmessage[0]["text"]["text"] = "*{}* at {} \
+        blockmessage[0]["text"]["text"] = "*ALERT REISSUE {}* at {} \
                         \n*{} {}* \
                         \nticket #{} for {}".format(location, timestamp.strftime("%-I:%M %p %A, %B %e, %Y"), nodename, description, ticketid, mentions)
         if status == _OPEN_STATUS:
