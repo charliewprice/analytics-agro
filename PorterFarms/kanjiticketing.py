@@ -32,6 +32,7 @@ _LOG_ERROR = 2
 config = configparser.ConfigParser()
 config.read("../../../analytics_secrets.ini")
 _LOG_LEVEL = int(config['DEFAULT']['loglevel'])
+_UTC_OFFSET = int(config['DEFAULT']['utcoffset'])
 
 def logger(level, message):
     if level >= _LOG_LEVEL:
@@ -80,7 +81,7 @@ def slackticket(nodename, location, description, mentions, impact, urgency, loca
         blockmessage[0]["accessory"]["image_url"] = locationimageurl
         blockmessage[0]["text"]["text"] = "*ALERT {}* at {} \
                         \n*{} {}* \
-                        \nticket #{} for {}".format(location, timestamp.strftime("%-I:%M %p %A, %B %e, %Y"), nodename, description, ticketid, mentions)
+                        \nticket #{} {}".format(location, timestamp.strftime("%-I:%M %p %A, %B %e, %Y"), nodename, description, ticketid, mentions)
 
         blockmessage[1]["text"]["text"] = "*To work this issue, click the button...*"
         blockmessage[1]["accessory"]["text"]["text"] = "I got it!"
@@ -104,15 +105,17 @@ def slackticket(nodename, location, description, mentions, impact, urgency, loca
           logger(_LOG_DEBUG, "Message ts = {}".format(response['ts']))
           return response['ts']
     
-def slackreissueticket(nodename, location, description, mentions, impact, urgency, locationimageurl, _SLACK_TOKEN, _SLACK_CHANNEL, ticketid, ticketts, status):
+def slackreissueticket(nodename, location, description, mentions, impact, urgency, locationimageurl, _SLACK_TOKEN, _SLACK_CHANNEL, ticketid, ticketts, status, ticketopenage, ticketopentime):
         timestamp = datetime.now()
+        ticketopentime = ticketopentime + timedelta(hours = _UTC_OFFSET)
         # start key replacement
         blockmessage = json.loads(openticketmessage)
         print(blockmessage[0]["accessory"]["image_url"])
         blockmessage[0]["accessory"]["image_url"] = locationimageurl
         blockmessage[0]["text"]["text"] = "*ALERT REISSUE {}* at {} \
-                        \n*{} {}* \
-                        \nticket #{} for {}".format(location, timestamp.strftime("%-I:%M %p %A, %B %e, %Y"), nodename, description, ticketid, mentions)
+                        *{} {}* \
+                        \nticket #{} first issued {} has been opened for {} \n{}".format(location, timestamp.strftime("%-I:%M %p %A, %B %e, %Y"), \
+                                                                       nodename, description, ticketid, ticketopentime.strftime("%-I:%M %p %A, %B %e, %Y"), ticketopenage, mentions)
         if status == _OPEN_STATUS:
           blockmessage[1]["text"]["text"] = "*To work this issue, click the button...*"
           blockmessage[1]["accessory"]["text"]["text"] = "I got it!"
@@ -125,7 +128,7 @@ def slackreissueticket(nodename, location, description, mentions, impact, urgenc
         # end key replacement
 
         sc = SlackClient(_SLACK_TOKEN)
-        response = sc.api_call("chat.update", channel=_SLACK_CHANNEL, ts=ticketts, text="REISSUE", blocks=blockmessage)        
+        response = sc.api_call("chat.update", channel=_SLACK_CHANNEL, link_names=1, ts=ticketts, text="REISSUE", blocks=blockmessage)        
                 
         if not 'ok' in response or not response['ok']:
           logger(_LOG_ERROR, "kanjiticketing Error posting message to Slack channel")
@@ -140,8 +143,8 @@ def slackreissueticket(nodename, location, description, mentions, impact, urgenc
 
 def openticket(conn, nodeid, locationid, description, impact, urgency, type, ticketchannelid):
     sqlinsert = "INSERT INTO kanji_ticket (opentimestamp, lastupdatetimestamp, node_id, location_id, description, \
-                 impact_id, urgency_id, type_id, status_id, slackticketchannel_id, ackuser_id) \
-                 VALUES ('{}', '{}', '{}', '{}', '{}', {}, {}, {}, {}, {}, {}) ".format(datetime.now(), datetime.now(), nodeid, locationid, description, impact, urgency, type, _OPEN_STATUS, ticketchannelid, _UNASSIGNED_USER)
+                 type_id, status_id, slackticketchannel_id, ackuser_id) \
+                 VALUES ('{}', '{}', '{}', '{}', '{}', {}, {}, {}, {}) ".format(datetime.now(), datetime.now(), nodeid, locationid, description, type, _OPEN_STATUS, ticketchannelid, _UNASSIGNED_USER)
     logger(_LOG_DEBUG, sqlinsert)
     cur = conn.cursor()
     cur.execute(sqlinsert)    
