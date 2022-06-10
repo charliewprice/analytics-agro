@@ -30,7 +30,7 @@ _LOG_INFO  = 1
 _LOG_ERROR = 2
 
 config = configparser.ConfigParser()
-config.read("../../../analytics_secrets.ini")
+config.read("../../analytics_secrets.ini")
 _LOG_LEVEL = int(config['DEFAULT']['loglevel'])
 _UTC_OFFSET = int(config['DEFAULT']['utcoffset'])
 
@@ -96,7 +96,7 @@ def slackticket(nodename, location, description, mentions, impact, urgency, loca
           response = sc.api_call("chat.postMessage", link_names=1, channel=_SLACK_CHANNEL, ts=ticketts, blocks=blockmessage)
                 
         if not 'ok' in response or not response['ok']:
-          logger(_LOG_ERROR, "kanjiticketing Error posting message to Slack channel")
+          logger(_LOG_ERROR, "kanjiticketing Error posting message to Slack channel {}".format(_SLACK_CHANNEL))
           logger(_LOG_ERROR, blockmessage)
           logger(_LOG_ERROR, response)
           return 0
@@ -144,7 +144,7 @@ def slackreissueticket(nodename, location, description, mentions, impact, urgenc
 def openticket(conn, nodeid, locationid, description, impact, urgency, type, ticketchannelid):
     sqlinsert = "INSERT INTO kanji_ticket (opentimestamp, lastupdatetimestamp, node_id, location_id, description, \
                  type_id, status_id, slackticketchannel_id, ackuser_id) \
-                 VALUES ('{}', '{}', '{}', '{}', '{}', {}, {}, {}, {}) ".format(datetime.now(), datetime.now(), nodeid, locationid, description, type, _OPEN_STATUS, ticketchannelid, _UNASSIGNED_USER)
+                 VALUES ('{}', '{}', '{}', '{}', '{}', {}, {}, {}, {}) ".format(datetime.now(), datetime.now(), nodeid, locationid,                 description, type, _OPEN_STATUS, ticketchannelid, _UNASSIGNED_USER)
     logger(_LOG_DEBUG, sqlinsert)
     cur = conn.cursor()
     cur.execute(sqlinsert)    
