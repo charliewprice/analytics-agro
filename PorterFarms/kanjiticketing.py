@@ -30,7 +30,7 @@ _LOG_INFO  = 1
 _LOG_ERROR = 2
 
 config = configparser.ConfigParser()
-config.read("../../analytics_secrets.ini")
+config.read("../analytics_secrets.ini")
 _LOG_LEVEL = int(config['DEFAULT']['loglevel'])
 _UTC_OFFSET = int(config['DEFAULT']['utcoffset'])
 
