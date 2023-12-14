@@ -1,0 +1,3 @@
+*.html
+PorterFarms/__pycache__/
+analytics_secrets.ini
